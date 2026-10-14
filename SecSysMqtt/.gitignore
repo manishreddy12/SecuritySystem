@@ -1,0 +1,16 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# DeepFace model weights cache
+.deepface/
+
+# OS files
+.DS_Store
+Thumbs.db

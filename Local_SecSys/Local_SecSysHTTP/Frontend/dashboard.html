@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Door - Dashboard</title>
+</head>
+<body>
+  <h2>Smart Door Dashboard</h2>
+
+  <p>
+    Door: <b id="doorLabel"></b><br>
+    Identified User: <b id="userLabel">Not identified</b>
+  </p>
+
+  <hr>
+
+  <h3>1) Upload Face</h3>
+  <input type="file" id="faceFile" accept="image/*">
+  <button onclick="uploadFace()">Upload Face</button>
+
+  <hr>
+
+  <h3>2) Verify Face</h3>
+  <input type="text" id="faceId" placeholder="face_id will appear here">
+  <button onclick="verifyFace()">Verify Face</button>
+
+  <hr>
+
+  <h3>3) Verify PIN</h3>
+  <input type="password" id="pin" placeholder="Enter PIN">
+  <button onclick="verifyPin()">Verify PIN</button>
+
+  <script>
+    const API_BASE = "http://localhost:3000";
+    const doorName = localStorage.getItem("doorName");
+
+    function fatal(msg) {
+      alert(msg || "Something went wrong. Redirecting to door selection.");
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    if (!doorName) fatal("No door selected.");
+
+    document.getElementById("doorLabel").innerText = doorName;
+
+    async function uploadFace() {
+      const fileInput = document.getElementById("faceFile");
+      if (!fileInput.files.length) {
+        alert("Please select a face image");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("face", fileInput.files[0]); // MUST be 'face'
+
+      try {
+        const res = await fetch(`${API_BASE}/face-upload`, {
+          method: "POST",
+          body: formData
+        });
+
+        const text = await res.text();
+        if (!res.ok) {
+          console.error(text);
+          fatal("Face upload failed.");
+          return;
+        }
+
+        const data = JSON.parse(text);
+        if (!data.face_id) fatal("Invalid response from server.");
+
+        alert("Face uploaded successfully.");
+        document.getElementById("faceId").value = data.face_id;
+
+      } catch (e) {
+        console.error(e);
+        fatal("Cannot reach server for face upload.");
+      }
+    }
+
+    async function verifyFace() {
+      const faceId = document.getElementById("faceId").value.trim();
+      if (!faceId) {
+        alert("Please upload face first.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/verifyFace`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doorName, face_id: faceId })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          alert(data?.error || "Face verification failed. Please try again.");
+          return;
+        }
+
+        if (data.matched) {
+          localStorage.setItem("username", data.username);
+          document.getElementById("userLabel").innerText = data.username;
+          alert("Face verified. User identified.");
+        } else {
+          alert("Face not recognized.");
+        }
+
+      } catch (e) {
+        console.error(e);
+        alert("Cannot reach server for face verification. Please try again.");
+      }
+    }
+
+    async function verifyPin() {
+      const pin = document.getElementById("pin").value;
+      const username = localStorage.getItem("username");
+
+      if (!username) {
+        alert("Please verify face first.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/verifyPin`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doorName, username, plainPin: pin })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) fatal(data?.error || "PIN verification failed.");
+
+        if (data.success) {
+          alert("Access Granted ✅");
+        } else {
+          alert("Wrong PIN ❌");
+        }
+
+      } catch (e) {
+        console.error(e);
+        fatal("Cannot reach server for PIN verification.");
+      }
+    }
+  </script>
+</body>
+</html>

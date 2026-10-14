@@ -1,0 +1,12 @@
+# Complete requirements for SecSysMqtt (Backend + Face Recognition)
+# Python 3.9 recommended for DeepFace compatibility
+Flask==3.1.2
+flask-cors==6.0.2
+pymongo==4.16.0
+bcrypt==4.1.2
+Pillow>=10.1.0
+requests==2.32.5
+paho-mqtt>=1.6.1
+deepface==0.0.95
+numpy<2
+tf-keras

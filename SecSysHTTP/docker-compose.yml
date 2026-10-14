@@ -1,0 +1,28 @@
+services:
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  face-rec:
+    build: ./Face_rec
+    ports:
+      - "5000:5000"
+
+  backend:
+    build: ./Backend
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      DB_NAME: apartment_security
+      FACE_RECOG_URL: http://face-rec:5000/verify-face
+      FACE_RECOG_TIMEOUT: "90"
+    depends_on:
+      - mongodb
+      - face-rec
+
+volumes:
+  mongo_data:

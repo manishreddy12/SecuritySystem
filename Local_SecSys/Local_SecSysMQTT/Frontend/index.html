@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Door - Select Door</title>
+</head>
+<body>
+  <h2>Select Door</h2>
+
+  <form id="doorForm">
+    <label>Door Name:</label><br>
+    <input type="text" id="doorName" placeholder="Door1" required><br><br>
+
+    <button type="submit">Continue</button>
+  </form>
+
+  <!-- <script>
+    document.getElementById("doorForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const doorName = document.getElementById("doorName").value.trim();
+      if (!doorName) {
+        alert("Please enter door name");
+        return;
+      }
+      localStorage.clear();
+      localStorage.setItem("doorName", doorName);
+      window.location.href = "dashboard.html";
+    });
+  </script> -->
+  <script>
+  document.getElementById("doorForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const doorName = document.getElementById("doorName").value.trim();
+    if (!doorName) {
+      alert("Please enter door name");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3000/ring-doorbell", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ doorName: doorName })
+      });
+
+      const data = await res.json();
+
+      // ❌ Door not found or error
+      if (!res.ok || data.error) {
+        alert(data.error || "Door not found. Please try again.");
+        return; // stay on same page
+      }
+
+      // ✅ Door valid
+      localStorage.clear();
+      localStorage.setItem("doorName", doorName);
+      localStorage.setItem("doorId", data.doorId);
+
+      // Proceed to next page
+      window.location.href = "dashboard.html";
+
+    } catch (err) {
+      console.error("Error connecting to backend:", err);
+      alert("Server not reachable. Please try again later.");
+    }
+  });
+</script>
+
+</body>
+</html>

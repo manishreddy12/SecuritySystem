@@ -1,0 +1,5 @@
+Flask==3.1.2
+deepface==0.0.95
+Pillow>=9.4.0
+numpy<2
+tf-keras

@@ -1,0 +1,2 @@
+Mongo db start(container): docker run -d --name mongodb -p 27017:27017 mongo
+docker run -d --name mosquitto -p 1883:1883 eclipse-mosquitto:2.1.2-alpine mosquitto -c /mosquitto-no-auth.conf
